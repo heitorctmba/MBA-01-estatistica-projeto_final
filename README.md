@@ -38,6 +38,11 @@ Apply descriptive statistics concepts to two real-world datasets: the Titanic pa
    - 3.8 Boxplot and percentiles (P10, Q1, Q2, Q3, P90)
    - 3.9 Scatter plot Age x Fare and Pearson correlation
 4. Summary and conclusions
+   - 4.1 Requirements checklist (PDF mapped to notebook sections)
+   - 4.2 Socioeconomic profile of passengers
+   - 4.3 Factors associated with survival
+   - 4.4 Relationship between age and fare
+   - 4.5 Final considerations
 
 ### Key Findings
 
