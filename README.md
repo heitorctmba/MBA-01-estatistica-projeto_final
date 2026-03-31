@@ -121,7 +121,7 @@ External source: [dadosabertos.tse.jus.br](https://dadosabertos.tse.jus.br), 201
 ### Key Findings
 
 - Campaign spending distribution is strongly skewed to the right in all states: national median of R$ 9,916 vs mean of R$ 220,397 (22x gap); the median is a more representative measure of the typical candidate than the mean
-- Pearson correlation between spending and votes is positive in all 27 states; intensity varies: AM r = 0.902 (strong), GO r = 0.605 (moderate to strong), RJ r = 0.556 (moderate)
+- Pearson correlation between spending and votes is positive in all 27 states; intensity varies: AM r = 0.902 (strong), GO r = 0.605 , RJ r = 0.556
 - Elected candidates spent hundreds of times more than non-elected candidates (median ratio: AM 1,200x, GO 800x, RJ 500x); spending is a frequent condition among elected candidates but not a sufficient one
 - Graphic and visual communication companies dominate classified spending, reflecting the weight of printed materials in 2014 campaigns; party committees appear among the top recipients in all states, indicating centralized financial transfers via party structure
 - The AM stands out for air taxi services in its top 10 suppliers, consistent with the logistical challenges of campaigning in the Amazon region
