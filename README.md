@@ -8,7 +8,7 @@ Apply descriptive statistics concepts to two real-world datasets: the Titanic pa
 
 ## Presentation Format
 
-This project will be presented to the professor in the form of a scientific article following the IEEE format. Since no specific template was required, the IEEE standard was chosen as it is a widely accepted technical and scientific format, appropriate for an MBA-level course.
+The final work will be submitted as a scientific article using the IEEE format. As no standard template was specified, IEEE was selected due to its wide adoption in technical and scientific fields, particularly in data science and computing, making it suitable for this MBA project.
 
 ---
 
