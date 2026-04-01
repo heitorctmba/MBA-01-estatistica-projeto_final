@@ -59,10 +59,10 @@ The final work will be submitted as a scientific article using the IEEE format. 
 
 | | |
 |---|---|
-| ![](assets/titanic/hist_fare.png) | ![](assets/titanic/hist_age.png) |
-| ![](assets/titanic/survival_class.png) | ![](assets/titanic/survival_gender.png) |
-| ![](assets/titanic/survival_group_age.png) | ![](assets/titanic/density.png) |
-| ![](assets/titanic/boxplot.png) | ![](assets/titanic/scatter_pearson.png) |
+| ![](assets/titanic/plots/hist_fare.png) | ![](assets/titanic/plots/hist_age.png) |
+| ![](assets/titanic/plots/survival_class.png) | ![](assets/titanic/plots/survival_gender.png) |
+| ![](assets/titanic/plots/survival_group_age.png) | ![](assets/titanic/plots/density.png) |
+| ![](assets/titanic/plots/boxplot.png) | ![](assets/titanic/plots/scatter_pearson.png) |
 
 ---
 
@@ -118,9 +118,9 @@ External source: [dadosabertos.tse.jus.br](https://dadosabertos.tse.jus.br), 201
 
 | | |
 |---|---|
-| ![](assets/elections/distribuicao_gasto.png) | ![](assets/elections/gasto_vs_votos.png) |
-| ![](assets/elections/gasto_total_estado.png) | ![](assets/elections/gasto_medio_estado.png) |
-| ![](assets/elections/fornecedores_setores.png) | ![](assets/elections/fornecedores_top10.png) |
+| ![](assets/elections/plots/distribuicao_gasto.png) | ![](assets/elections/plots/gasto_vs_votos.png) |
+| ![](assets/elections/plots/gasto_total_estado.png) | ![](assets/elections/plots/gasto_medio_estado.png) |
+| ![](assets/elections/plots/fornecedores_setores.png) | ![](assets/elections/plots/fornecedores_top10.png) |
 
 ### Key Findings
 
