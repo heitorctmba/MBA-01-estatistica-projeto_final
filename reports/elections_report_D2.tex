@@ -9,26 +9,16 @@
 \usepackage{subcaption}
 \usepackage{amsmath, amssymb}
 \usepackage{float}
+\usepackage[section]{placeins}
 \usepackage{xcolor}
 \usepackage{fancybox}
 
-\graphicspath{{../assets/elections/plots/}{../assets/elections/tables/}}
-
-% Placeholder para tabelas (substituir por screenshot)
-\newcommand{\tablePlaceholder}[1]{%
-  \begin{center}
-    \fbox{\parbox{0.85\columnwidth}{%
-      \centering\vspace{0.4cm}
-      \textbf{[PLACEHOLDER]} \\[0.2cm]
-      \textit{#1} \\[0.4cm]
-    }}
-  \end{center}
-}
+\graphicspath{{../assets/elections/plots/}}
+\raggedbottom
 
 % -------------------------------------------------------------------------
 \title{Análise Estatística Descritiva do Dataset de Eleições:\\
-Financiamento de Campanha e Padrões Eleitorais dos Candidatos a\\
-Deputado Federal nas Eleições Brasileiras de 2014}
+Dinheiro de Campanha e Votos nas Eleições Brasileiras de 2014}
 
 \author{
   \IEEEauthorblockN{Heitor Teixeira - 2651254}
@@ -47,759 +37,645 @@ Deputado Federal nas Eleições Brasileiras de 2014}
 % -------------------------------------------------------------------------
 \begin{abstract}
 Este trabalho apresenta uma análise estatística descritiva do dataset de
-eleições brasileiras de 2014 (D2), com foco nos candidatos ao cargo de
-Deputado Federal. O dataset integrado compreende 6.353 candidatos, com
-dados de gastos de campanha, votos obtidos, resultado eleitoral e
-características demográficas (gênero e raça), enriquecidos a partir de
-registros oficiais do Tribunal Superior Eleitoral (TSE). A análise
-inclui: classificação das variáveis; estatísticas descritivas completas
-das variáveis quantitativas Gasto e Votos; distribuições de frequência;
-análise de gasto por partido e por estado; estudo de fornecedores e setores
-econômicos; coeficiente de correlação de Pearson entre gasto e votos em nível
-nacional e estadual; e análise de representatividade por gênero e raça.
-Os resultados revelam uma distribuição de gastos fortemente assimétrica à
-direita (razão média/mediana de 22$\times$ em nível nacional), com o Amazonas
-(AM) exibindo a correlação mais forte entre gasto e votos ($r = 0{,}902$),
-seguido por Goiás (GO, $r = 0{,}605$) e Rio de Janeiro (RJ, $r = 0{,}556$).
-A análise de equidade evidencia disparidades estruturais: candidatas mulheres
-concentraram apenas 9{,}6\% dos gastos totais, correspondentes a 29{,}6\% dos
-candidatos; candidatos brancos foram o único grupo com proporção de gastos
-superior à sua representação (razão 1{,}40$\times$), enquanto candidatos
-indígenas acessaram apenas 5\% do esperado.
+Eleições Brasileiras de 2014 (D2), restrito aos candidatos a Deputado
+Federal. A base principal contém 6.353 candidaturas e foi enriquecida com
+informações auxiliares do Tribunal Superior Eleitoral (TSE), embora as
+análises centrais do relatório se concentrem nas variáveis \textit{Gasto} e
+\textit{Votos}, conforme solicitado na atividade. Foram construídos
+histogramas de gasto e votos para os estados RJ, GO e AM, gráficos de
+dispersão entre gasto e votos para os mesmos recortes, uma tabela de correlação
+por UF e uma tabela-resumo por estado com média, mediana, desvio-padrão,
+mínimo, máximo, Q1 e Q3. Os resultados mostram distribuições fortemente
+assimétricas à direita, o que justifica o uso de escala logarítmica nos
+histogramas e gráficos de dispersão. A correlação entre gasto e votos foi
+positiva em todas as 27 UFs analisadas, variando de $r = 0{,}475$ em São
+Paulo a $r = 0{,}902$ no Amazonas. Entre os estados selecionados, o Rio de
+Janeiro apresentou correlação moderada positiva ($r = 0{,}556$), Goiás
+correlação moderada positiva ($r = 0{,}605$) e o Amazonas correlação forte
+positiva ($r = 0{,}902$). Em nível nacional, a mediana de gasto
+(R\$\,9.916) ficou muito abaixo da média (R\$\,220.397), evidenciando forte
+concentração de recursos em poucas candidaturas.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Estatística descritiva, eleições brasileiras, financiamento de campanha,
-correlação de Pearson, gênero, raça, análise exploratória de dados.
+Estatística descritiva, eleições brasileiras, correlação de Pearson,
+histograma, escala logarítmica.
 \end{IEEEkeywords}
 
 % =========================================================================
 \section{Introdução}
 
-Este trabalho realiza uma análise de estatística descritiva sobre o dataset
-de Eleições (D2), em atendimento à atividade avaliativa da disciplina de
-Estatística Descritiva. O dataset reúne informações de candidatos ao cargo
-de Deputado Federal nas eleições brasileiras de 2014, incluindo gastos de
-campanha declarados, votos obtidos, resultado eleitoral e atributos
-sociodemográficos provenientes do cadastro oficial do TSE.
+Este relatório apresenta a análise estatística descritiva do dataset D2,
+conforme o briefing da disciplina de Estatística Descritiva. O conjunto
+\texttt{eleicoes.csv} reúne informações sobre candidatos a Deputado Federal
+nas eleições brasileiras de 2014, com quatro campos centrais: UF, número do
+candidato, gasto de campanha e votos obtidos.
 
-A análise foi implementada em Python com as bibliotecas \textit{pandas},
-\textit{matplotlib}, \textit{numpy}, \textit{scipy} e \textit{requests},
-e cobre os seguintes requisitos: (i) classificação das variáveis qualitativas
-e quantitativas; (ii) estatísticas descritivas completas de Gasto e Votos;
-(iii) histogramas e distribuições de frequência; (iv) gráficos de barras para
-variáveis qualitativas; (v) análise de fornecedores e setores econômicos;
-(vi) coeficiente de correlação de Pearson entre Gasto e Votos em nível nacional
-e para os estados RJ, GO e AM; e (vii) análise complementar de representatividade
-e desempenho eleitoral por gênero e raça.
+O briefing solicita quatro entregas principais para esse dataset: (i)
+histogramas de dinheiro e votos para três estados escolhidos pelo aluno;
+(ii) gráficos de dispersão entre dinheiro e votos, com o respectivo
+coeficiente de Pearson, para esses mesmos estados; (iii) uma tabela com a
+correlação por estado para o Brasil inteiro; e (iv) uma tabela-resumo por
+UF contendo medidas de tendência central e dispersão para dinheiro e votos.
 
-O formato de entrega adotado é o de artigo científico segundo o padrão IEEE,
-pela mesma justificativa apresentada na análise do dataset D1: trata-se de uma
-estrutura consolidada que favorece a organização clara dos resultados e sua
-reprodutibilidade.
+Os estados selecionados foram \textbf{Rio de Janeiro (RJ)}, \textbf{Goiás
+(GO)} e \textbf{Amazonas (AM)}. A escolha busca representar três contextos
+comportamentais distintos observados no notebook: um estado grande e mais
+heterogêneo (RJ), um estado com forte concentração de recursos em poucas
+campanhas (GO) e um estado com a correlação mais alta entre gasto e votos
+em toda a base (AM).
+
+Assim como no relatório do dataset Titanic, optou-se pelo formato de artigo
+científico em padrão IEEE. Esse formato favorece a organização por seções,
+permite comentar cada figura e tabela logo após sua apresentação e ajuda a
+manter o documento final legível mesmo em um conjunto de dados com forte
+assimetria e grande amplitude numérica.
 
 % =========================================================================
 \section{Fundamentação Teórica}
 
 \subsection{Estatística Descritiva}
 
-A estatística descritiva visa sumarizar e apresentar sistematicamente as
-características de um conjunto de dados, sem inferir parâmetros populacionais.
-No contexto de dados eleitorais com alta variabilidade, a escolha das medidas
-de posição e dispersão é particularmente relevante, pois distribuições
-assimétricas tornam a média uma medida enganosa da tendência central típica.
+A estatística descritiva reúne técnicas voltadas à organização, síntese e
+interpretação de conjuntos de dados, sem o objetivo de inferir parâmetros
+populacionais. Em problemas eleitorais, ela é especialmente útil para
+identificar concentração de recursos, dispersão de votos e diferenças entre
+unidades da federação.
 
 \subsection{Medidas de Posição e Dispersão}
 
-A média aritmética é sensível a valores extremos (\textit{outliers}), sendo
-inadequada como única medida de posição em distribuições fortemente assimétricas.
-A mediana, por ser resistente a valores extremos, representa com mais fidelidade
-o candidato típico em distribuições de gastos de campanha. O desvio-padrão e o
-coeficiente de variação complementam a análise ao quantificar a dispersão relativa
-e absoluta dos dados.
+Média, mediana, mínimo, máximo, desvio-padrão e quartis permitem descrever a
+posição central e a variabilidade das distribuições. Em bases altamente
+assimétricas, como a de gastos de campanha, a mediana tende a representar
+melhor o candidato típico, pois a média é fortemente afetada por poucos
+valores extremos.
 
-\subsection{Distribuições de Frequência e Histogramas}
+\subsection{Histogramas e Escala Logarítmica}
 
-O histograma representa a distribuição de frequências de uma variável contínua
-por retângulos adjacentes, com base no intervalo de classe e altura proporcional
-à frequência. O número de classes foi definido pela regra da raiz quadrada
-($k \approx \sqrt{n}$), adotada neste trabalho. A visualização em escala
-logarítmica é necessária para variáveis com amplitude muito elevada, como gastos
-de campanha, que variam de R\$\,0{,}72 a R\$\,8{,}4 milhões em nível nacional.
+Histogramas representam a distribuição de frequências de uma variável
+quantitativa por intervalos de classe. Quando a amplitude dos dados é muito
+grande e há cauda longa à direita, a escala logarítmica melhora a leitura do
+gráfico ao comprimir os valores extremos sem eliminar a percepção de
+concentração nas faixas mais baixas.
 
 \subsection{Correlação de Pearson}
 
-O coeficiente de correlação de Pearson $r$ mede a intensidade e a direção da
-relação linear entre duas variáveis contínuas:
+O coeficiente de correlação de Pearson mede a intensidade e a direção da
+relação linear entre duas variáveis quantitativas contínuas. Sua expressão é a seguinte:
 \begin{equation}
   r = \frac{\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}
            {\sqrt{\sum_{i=1}^{n}(x_i - \bar{x})^2 \cdot
                   \sum_{i=1}^{n}(y_i - \bar{y})^2}}
 \end{equation}
-Valores de $|r|$ próximos de 1 indicam forte relação linear; valores próximos
-de 0, ausência de relação linear. Neste trabalho, o teste de significância
-associado avalia a hipótese nula $H_0: r = 0$ entre gasto de campanha e votos
-obtidos.
 
-\subsection{Análise de Representatividade}
-
-A razão de representatividade é calculada como a proporção do total de gastos
-de um grupo dividida pela proporção desse grupo no total de candidatos. Uma
-razão igual a 1 indica distribuição proporcional; razão superior a 1 indica que
-o grupo acessa mais recursos do que sua presença na corrida eleitoral; razão
-inferior a 1 indica sub-representação financeira. Essa métrica permite comparar
-grupos de diferentes tamanhos em condições de igualdade.
+Valores positivos indicam associação direta entre as variáveis; valores
+negativos indicam associação inversa. Neste trabalho, o coeficiente é usado
+para verificar em que medida campanhas com mais recursos tendem a receber
+mais votos em cada estado.
 
 % =========================================================================
 \section{Metodologia}
 
-\subsection{Fontes de Dados e Integração}
+\subsection{Base Utilizada e Enriquecimento}
 
-O dataset principal foi fornecido pelo professor e contém registros de 6.353
-candidatos a Deputado Federal nas eleições brasileiras de 2014, com variáveis
-de gasto de campanha (Gasto), votos obtidos (Votos) e resultado eleitoral
-(Situacao). Para enriquecer a análise demográfica, esses dados foram integrados
-ao cadastro oficial de candidatos do TSE (2014), que fornece gênero, raça,
-escolaridade e estado civil. Um segundo conjunto de dados com 366.289 registros
-de transações com fornecedores foi utilizado para a análise setorial.
+A base principal deste relatório é o arquivo \texttt{eleicoes.csv}, com
+6.353 candidaturas a Deputado Federal. O notebook também integra duas bases
+auxiliares do TSE: a prestação de contas de despesas e o cadastro oficial de
+candidatos de 2014. Esse enriquecimento recupera informações como partido,
+situação eleitoral, gênero e raça, além de permitir validar a consistência
+entre o gasto agregado da base original e a soma das despesas declaradas ao
+TSE.
 
-\subsection{Validação e Consistência dos Dados}
+No cruzamento com as bases auxiliares, 5.392 candidaturas (84,9\%) foram
+localizadas. Entre os candidatos com gasto positivo, apenas 4 não tiveram
+correspondência. Dos 5.319 casos com gasto positivo presentes nas duas
+fontes, 5.054 (95,0\%) tiveram concordância exata entre a base principal e o
+valor agregado das despesas do TSE. Como o objetivo deste relatório é
+cumprir o briefing do D2 com clareza, essas variáveis adicionais são usadas
+apenas para caracterização do conjunto, enquanto as análises centrais
+permanecem em \textit{Gasto} e \textit{Votos}.
 
-Os gastos do dataset do professor foram confrontados com os gastos oficiais do
-TSE para aferir a confiabilidade da fonte. Das 5.319 candidaturas com dados
-nas duas fontes, 95{,}02\% apresentaram correspondência exata (diferença
-$<$ R\$\,0{,}01); apenas 4{,}96\% (264 candidatos) exibiram divergência
-superior a R\$\,1{,}00, com diferença máxima de R\$\,966{,}926 e diferença
-média de R\$\,585{,}09. Cerca de 40\% das divergências (107 casos) concentraram-se
-no Rio de Janeiro, o que sugere que a base do professor pode ter sido compilada a
-partir de uma versão anterior dos dados do TSE. As divergências identificadas não
-comprometem as análises realizadas.
+\subsection{Filtros Analíticos}
 
-\subsection{Filtragem e Definição da Amostra}
+Candidatos com \textit{Gasto} igual a zero foram removidos das análises de
+distribuição de gastos e das correlações. Essa decisão é metodologicamente
+justificada por dois motivos: (i) 1.030 candidatos (16,2\% da base) não
+registraram gasto algum, o que criaria uma massa artificial em zero; e (ii)
+nenhum candidato eleito apresentou gasto zero.
 
-Candidatos com Gasto igual a zero foram removidos das análises de distribuição
-e correlação. Essa decisão baseia-se no fato de que nenhum candidato eleito
-registrou gasto zero, e a inclusão desses registros distorceria as medidas de
-tendência central e a correlação com votos. A amostra resultante para análise
-de gasto compreende \textbf{5.323 candidatos} em nível nacional.
+Para os histogramas de votos, foram considerados apenas candidatos com
+\textit{Votos} positivos. Nos gráficos de dispersão e no cálculo do
+coeficiente de Pearson, exigiu-se simultaneamente \textit{Gasto} $> 0$ e
+\textit{Votos} $> 0$. Na tabela-resumo por UF, cada variável foi descrita em
+seu domínio positivo correspondente, preservando a comparabilidade com os
+gráficos do notebook.
 
 \subsection{Procedimentos Analíticos}
 
-A análise foi organizada em seis etapas complementares: (i) classificação das
-variáveis e caracterização inicial do dataset; (ii) cálculo de estatísticas
-descritivas completas para Gasto e Votos; (iii) construção de histogramas e
-análise da distribuição de gastos; (iv) análise de gastos por partido e por
-estado; (v) análise de correlação de Pearson entre Gasto e Votos em nível
-nacional e para os estados RJ, GO e AM; (vi) análise setorial de fornecedores;
-e (vii) análise complementar de representatividade e desempenho eleitoral por
-gênero e raça.
+A análise foi organizada em quatro etapas. Primeiro, foi feita uma
+caracterização inicial da base e calculadas estatísticas nacionais de
+referência para \textit{Gasto} e \textit{Votos}. Em seguida, foram
+construídos histogramas para RJ, GO e AM, sempre com comentários curtos sobre
+concentração, assimetria e cauda longa. Na terceira etapa, foram gerados os
+gráficos de dispersão e calculadas as correlações de Pearson para esses três
+estados. Por fim, foram montadas duas tabelas sintéticas: uma com a
+correlação por UF e outra com medidas de tendência central e dispersão por
+estado.
 
 % =========================================================================
 \section{Resultados e Discussão}
 
-\subsection{Caracterização Inicial do Dataset}
-\label{subsec:caracterizacao_inicial}
+\subsection{Caracterização Inicial e Panorama Nacional}
 
-\begin{figure}[t]
+A Tabela~\ref{tab:variaveis} resume as principais variáveis mobilizadas no
+relatório. Embora o dataset enriquecido contenha outros campos auxiliares,
+as colunas centrais para o escopo do briefing são as relacionadas à
+identificação da candidatura, ao gasto e ao desempenho eleitoral.
+
+\begin{table}[t]
   \centering
-  \tablePlaceholder{Identificação e classificação das variáveis do dataset de Eleições.}
-  \caption{Identificação e classificação das variáveis do dataset de Eleições 2014.}
+  \caption{Principais variáveis analisadas no dataset D2.}
   \label{tab:variaveis}
-\end{figure}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{p{2.2cm}p{2.0cm}p{2.8cm}}
+    \toprule
+    \textbf{Variável} & \textbf{Tipo} & \textbf{Descrição} \\
+    \midrule
+    Estado & Qualitativa nominal & UF do candidato \\
+    Numero Candidato & Qualitativa nominal & Identificador eleitoral \\
+    Gasto & Quantitativa contínua & Recursos de campanha em R\$ \\
+    Votos & Quantitativa discreta & Total de votos recebidos \\
+    Situacao & Qualitativa nominal & Eleito, suplente ou não eleito \\
+    Partido & Qualitativa nominal & Sigla partidária \\
+    Genero & Qualitativa nominal & Gênero declarado no TSE \\
+    Raca & Qualitativa nominal & Cor/raça declarada no TSE \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
-A Tabela~\ref{tab:variaveis} apresenta a classificação das variáveis do dataset.
-As variáveis quantitativas principais são Gasto (contínua, em R\$) e Votos
-(discreta, contagem). As variáveis qualitativas incluem Situacao (3 categorias:
-Eleito, Suplente, Não Eleito), Genero (2 categorias: Masculino, Feminino),
-Raca (5 categorias: Branca, Parda, Preta, Amarela, Indígena), Partido e Estado.
+A Tabela~\ref{tab:descritivas_nacionais} apresenta as estatísticas nacionais
+que servem de referência para a interpretação dos recortes estaduais. Em
+nível nacional, o gasto médio (R\$\,220.397) supera a mediana
+(R\$\,9.916) em mais de 22 vezes, enquanto a média de votos (15.286) supera
+a mediana (1.250) em pouco mais de 12 vezes. Em ambos os casos, a diferença
+entre média e mediana, aliada ao desvio-padrão elevado, já indica cauda
+longa à direita e forte concentração em poucos candidatos.
 
-\begin{figure}[t]
+\begin{table}[t]
   \centering
-  \includegraphics[width=\columnwidth]{table_2_3_1.png}
-  \caption{Cruzamento de completude entre o dataset do professor e os dados
-           oficiais do TSE 2014.}
-  \label{tab:completude}
-\end{figure}
+  \caption{Estatísticas descritivas nacionais das variáveis principais.}
+  \label{tab:descritivas_nacionais}
+  \footnotesize
+  \resizebox{\columnwidth}{!}{%
+    \begin{tabular}{lrrrrrrrr}
+      \toprule
+      \textbf{Variável} & \textbf{n} & \textbf{Média} & \textbf{Mediana} & \textbf{DP} & \textbf{Min} & \textbf{Q1} & \textbf{Q3} & \textbf{Máx} \\
+      \midrule
+      Gasto (R\$) & 5.323 & 220.397 & 9.916 & 632.549 & 1 & 2.343 & 77.903 & 8.464.594 \\
+      Votos & 5.741 & 15.286 & 1.250 & 43.372 & 2 & 399 & 6.701 & 1.524.361 \\
+      \bottomrule
+    \end{tabular}%
+  }
+\end{table}
 
-A Tabela~\ref{tab:completude} evidencia que 84{,}87\% dos candidatos foram
-localizados na base oficial do TSE. Os 15{,}06\% não localizados com Gasto = 0
-não afetam as análises, pois o filtro de candidatos sem gasto registrado é
-aplicado previamente.
+Esses números justificam o uso de escala logarítmica nos histogramas e nos
+gráficos de dispersão. Sem essa transformação visual, os poucos casos com
+milhões de reais em gasto ou centenas de milhares de votos comprimiriam a
+massa principal dos dados junto ao eixo de origem.
 
-\subsection{Estatísticas Descritivas}
+\subsection{Histogramas por Estado}
 
-A Tabela~\ref{tab:descritivas_br} apresenta as principais estatísticas
-descritivas das variáveis quantitativas em nível nacional.
-
-\begin{figure}[t]
-  \centering
-  \tablePlaceholder{Estatísticas descritivas de Gasto e Votos --- Brasil (6.353 candidatos).}
-  \caption{Estatísticas descritivas das variáveis quantitativas --- Brasil.}
-  \label{tab:descritivas_br}
-\end{figure}
-
-Os principais resultados são:
-
-\begin{itemize}
-  \item \textbf{Gasto}: média de R\$\,184.664 ($\sigma = $ R\$\,584.669),
-        mediana de R\$\,5.804. A razão média/mediana de $\approx 22\times$
-        evidencia forte assimetria positiva e indica que a mediana representa
-        melhor o candidato típico.
-  \item \textbf{Votos}: média de 18.058, mediana de 1.775; máximo de 1.524.361.
-        Mesmo grau de assimetria, com desvio-padrão superando a média.
-  \item \textbf{Percentil 75 do Gasto}: R\$\,46.569 --- 75\% dos candidatos
-        gastaram menos de R\$\,47 mil, enquanto a média é puxada pelos poucos
-        que gastaram milhões.
-\end{itemize}
-
-\subsection{Distribuição de Frequências: Gasto de Campanha}
-
-A Figura~\ref{fig:hist_gasto} exibe o histograma dos gastos de campanha em
-nível nacional (candidatos com Gasto $>$ 0), com eixo $x$ em escala logarítmica.
-O número de classes foi determinado pela regra da raiz quadrada
-($k \approx \sqrt{5323} \approx 72$).
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{distribuicao_gasto.png}
-  \caption{Distribuição de frequência do gasto de campanha (escala logarítmica,
-           candidatos com Gasto $>$ 0). Brasil, 2014.}
-  \label{fig:hist_gasto}
-\end{figure}
-
-A distribuição é fortemente assimétrica à direita em todos os recortes
-analisados. A grande maioria dos candidatos concentra-se em gastos inferiores
-a R\$\,50.000, enquanto um pequeno número ultrapassou R\$\,1 milhão. Nenhum
-candidato eleito registrou gasto abaixo de R\$\,38.810, sugerindo a existência
-de um limiar mínimo de visibilidade para o sucesso eleitoral.
-
-\subsection{Distribuição das Variáveis Qualitativas}
-
-\subsubsection{Gasto por Partido}
-
-As Figuras~\ref{fig:gasto_total_partido} e~\ref{fig:gasto_medio_partido}
-mostram, respectivamente, o gasto total e o gasto médio por partido em nível
-nacional.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{gasto_total_partido.png}
-  \caption{Gasto total de campanha por partido (top partidos). Brasil, 2014.}
-  \label{fig:gasto_total_partido}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{gasto_medio_partido.png}
-  \caption{Gasto médio de campanha por partido. Brasil, 2014.}
-  \label{fig:gasto_medio_partido}
-\end{figure}
-
-A análise por partido revela concentração de recursos em partidos de maior
-porte, com significativa variação no gasto médio por candidato. Partidos com
-maior número de candidatos tendem a dominar o gasto total, mas não
-necessariamente o gasto médio por candidato.
-
-\subsubsection{Gasto por Estado}
-
-As Figuras~\ref{fig:gasto_total_estado} e~\ref{fig:gasto_medio_estado}
-apresentam o gasto total e médio por estado.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{gasto_total_estado.png}
-  \caption{Gasto total de campanha por estado. Brasil, 2014.}
-  \label{fig:gasto_total_estado}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{gasto_medio_estado.png}
-  \caption{Gasto médio de campanha por estado. Brasil, 2014.}
-  \label{fig:gasto_medio_estado}
-\end{figure}
-
-São Paulo (SP) lidera o gasto total absoluto, reflexo de sua bancada de 70
-deputados e consequente maior número de candidatos (1.072). Contudo, no ranking
-de gasto médio por candidato, estados menores como Goiás e Amazonas superam SP
-e RJ, pois disputam o mesmo número de vagas com um número menor de candidatos,
-concentrando mais recursos por candidatura.
-
-\subsection{Correlação entre Gasto e Votos}
-
-\subsubsection{Nível Nacional}
-
-A Figura~\ref{fig:scatter_br} apresenta o diagrama de dispersão entre gasto
-de campanha e votos obtidos em nível nacional, com pontos coloridos por
-resultado eleitoral. A Figura~\ref{fig:matriz_br} exibe a matriz de correlação
-de Pearson.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{gasto_vs_votos.png}
-  \caption{Dispersão: Gasto $\times$ Votos, por resultado eleitoral.
-           $r = 0{,}593$. Brasil, 2014.}
-  \label{fig:scatter_br}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{br_matriz_correlacao.png}
-  \caption{Matriz de correlação de Pearson (Gasto $\times$ Votos). Brasil, 2014.}
-  \label{fig:matriz_br}
-\end{figure}
-
-O coeficiente de Pearson nacional é $r = 0{,}593$ ($p < 0{,}001$), indicando
-correlação positiva moderada a forte. A Tabela~\ref{tab:pearson_br} detalha
-os resultados por grupo eleitoral.
-
-\begin{figure}[t]
-  \centering
-  \tablePlaceholder{Gasto e Votos por resultado eleitoral, com correlação de Pearson --- Brasil.}
-  \caption{Gasto e votos por resultado eleitoral, e coeficiente de correlação
-           de Pearson entre Gasto e Votos. Brasil, 2014.}
-  \label{tab:pearson_br}
-\end{figure}
-
-Os candidatos eleitos apresentaram gasto médio de R\$\,1.475.261 (mediana:
-R\$\,1.072.042), contra R\$\,119.472 dos suplentes e R\$\,23.316 dos não
-eleitos. A diferença de medianas entre eleitos e não eleitos é de $\approx
-310\times$, ilustrando que o gasto mediano dos eleitos supera o de quase todos
-os candidatos não eleitos.
-
-\subsubsection{Divergências entre Fontes por Estado}
-
-A Figura~\ref{fig:divergentes} exibe a distribuição das 264 divergências de
-gasto encontradas entre a base do professor e os dados oficiais do TSE,
-estratificadas por estado.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{divergentes_por_estado.png}
-  \caption{Divergências de gasto entre dataset do professor e TSE, por estado.
-           Brasil, 2014.}
-  \label{fig:divergentes}
-\end{figure}
-
-A concentração de $\approx 40\%$ das divergências no Rio de Janeiro (107 casos)
-é consistente com a hipótese de que os dados do professor foram compilados a
-partir de uma versão anterior da base do TSE, possivelmente antes de
-retificações realizadas pelos candidatos fluminenses.
-
-\subsection{Análise por Estado: RJ, GO e AM}
+Para manter a leitura linear do artigo, os histogramas são apresentados
+individualmente, um por coluna, sempre acompanhados por um comentário curto
+antes e depois da figura.
 
 \subsubsection{Rio de Janeiro (RJ)}
 
-\begin{figure}[t]
+O Rio de Janeiro é o maior recorte entre os três estados escolhidos, o que
+o torna uma boa referência para observar distribuições mais heterogêneas.
+Primeiro, apresenta-se o histograma do gasto de campanha.
+
+\begin{figure}[!t]
   \centering
-  \tablePlaceholder{Estatísticas descritivas de Gasto e Votos --- Rio de Janeiro (RJ).}
-  \caption{Estatísticas descritivas das variáveis quantitativas --- RJ, 2014.}
-  \label{tab:descritivas_rj}
+  \includegraphics[width=\columnwidth]{rj_distribuicao_gasto.png}
+  \caption{Histograma do gasto de campanha no Rio de Janeiro (eixo $x$ em escala logarítmica).}
+  \label{fig:rj_hist_gasto}
 \end{figure}
 
-O Rio de Janeiro contou com 1.001 candidatos (699 com votos registrados) e 46
-eleitos. A mediana de gastos (R\$\,3.324) é 22{,}7$\times$ menor que a média
-(R\$\,110.674), assimetria análoga ao padrão nacional. A Figura~\ref{fig:scatter_rj}
-e a Tabela~\ref{tab:pearson_rj} apresentam a correlação estadual.
+No RJ, o gasto é fortemente assimétrico à direita: a maior parte dos
+candidatos aparece nas faixas mais baixas, enquanto poucos casos puxam a
+cauda para valores muito altos. A média é 22,7 vezes maior que a mediana,
+o que confirma forte concentração de recursos em poucas candidaturas.
 
-\begin{figure}[t]
+A distribuição de votos do mesmo estado complementa esse retrato e mostra
+como a competitividade eleitoral também se concentra em um grupo reduzido
+de candidatos.
+
+\begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{gasto_vs_votos_RJ.png}
-  \caption{Dispersão: Gasto $\times$ Votos --- RJ. $r = 0{,}556$. 2014.}
-  \label{fig:scatter_rj}
+  \includegraphics[width=\columnwidth]{rj_distribuicao_votos.png}
+  \caption{Histograma do número de votos no Rio de Janeiro (eixo $x$ em escala logarítmica).}
+  \label{fig:rj_hist_votos}
 \end{figure}
 
-\begin{figure}[t]
-  \centering
-  \tablePlaceholder{Gasto e Votos por resultado eleitoral, com correlação de Pearson --- RJ.}
-  \caption{Gasto e votos por resultado eleitoral, e coeficiente de correlação
-           de Pearson entre Gasto e Votos. RJ, 2014.}
-  \label{tab:pearson_rj}
-\end{figure}
-
-A correlação no RJ ($r = 0{,}556$, $p < 0{,}001$) é a mais baixa entre os
-três estados analisados, reflexo da heterogeneidade inerente ao estado mais
-populoso da amostra (701 candidatos com votos). Os eleitos gastaram em média
-R\$\,1.618.134, contra R\$\,17.496 dos não eleitos.
+O histograma de votos do RJ também apresenta cauda longa à direita, mas com
+maior espalhamento visual do que nos demais estados. Isso é coerente com um
+colégio eleitoral maior e mais diverso, no qual há muitos candidatos com
+baixa votação e poucos nomes com desempenho muito superior.
 
 \subsubsection{Goiás (GO)}
 
-\begin{figure}[t]
+Goiás apresenta um comportamento mais concentrado do que o RJ, sobretudo no
+gasto de campanha. O histograma abaixo evidencia esse padrão.
+
+\begin{figure}[!t]
   \centering
-  \tablePlaceholder{Estatísticas descritivas de Gasto e Votos --- Goiás (GO).}
-  \caption{Estatísticas descritivas das variáveis quantitativas --- GO, 2014.}
-  \label{tab:descritivas_go}
+  \includegraphics[width=\columnwidth]{go_distribuicao_gasto.png}
+  \caption{Histograma do gasto de campanha em Goiás (eixo $x$ em escala logarítmica).}
+  \label{fig:go_hist_gasto}
 \end{figure}
 
-Goiás apresentou 144 candidatos (77 com votos), com 17 eleitos. A razão
-média/mediana é de 125{,}7$\times$ --- a mais extrema entre os estados analisados
---- indicando que poucos candidatos de alto gasto dominam completamente a
-distribuição. A Figura~\ref{fig:scatter_go} e a Tabela~\ref{tab:pearson_go}
-apresentam a correlação estadual.
+Em GO, a assimetria é a mais extrema entre os três estados analisados: a
+média do gasto supera a mediana em 125,7 vezes. Esse afastamento mostra que
+pouquíssimas campanhas concentram volume muito alto de recursos, enquanto a
+maioria permanece em patamares bastante modestos.
 
-\begin{figure}[t]
+O mesmo estado também revela forte concentração na distribuição de votos,
+como se observa no histograma seguinte.
+
+\begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{gasto_vs_votos_GO.png}
-  \caption{Dispersão: Gasto $\times$ Votos --- GO. $r = 0{,}605$. 2014.}
-  \label{fig:scatter_go}
+  \includegraphics[width=\columnwidth]{go_distribuicao_votos.png}
+  \caption{Histograma do número de votos em Goiás (eixo $x$ em escala logarítmica).}
+  \label{fig:go_hist_votos}
 \end{figure}
 
-\begin{figure}[t]
-  \centering
-  \tablePlaceholder{Gasto e Votos por resultado eleitoral, com correlação de Pearson --- GO.}
-  \caption{Gasto e votos por resultado eleitoral, e coeficiente de correlação
-           de Pearson entre Gasto e Votos. GO, 2014.}
-  \label{tab:pearson_go}
-\end{figure}
-
-Os eleitos em GO gastaram em média R\$\,2.517.461 (mediana: R\$\,2.222.030),
-contra R\$\,16.712 dos não eleitos --- uma diferença de 151$\times$ nas médias
-e de 519$\times$ nas medianas, a mais pronunciada entre os três estados.
-A correlação de $r = 0{,}605$ ($p < 0{,}001$) é superior à do RJ.
+Nos votos, a razão entre média e mediana chega a 25,3, sinalizando que poucos
+candidatos altamente competitivos dominam a distribuição. O contraste entre
+as barras iniciais e a longa cauda à direita deixa claro que a votação está
+longe de ser uniformemente distribuída.
 
 \subsubsection{Amazonas (AM)}
 
-\begin{figure}[t]
+O Amazonas fecha o conjunto dos histogramas com um padrão intermediário entre
+RJ e GO em termos de concentração do gasto, mas com separação visual mais
+nítida entre campanhas pequenas e campanhas muito fortes.
+
+\begin{figure}[!t]
   \centering
-  \tablePlaceholder{Estatísticas descritivas de Gasto e Votos --- Amazonas (AM).}
-  \caption{Estatísticas descritivas das variáveis quantitativas --- AM, 2014.}
-  \label{tab:descritivas_am}
+  \includegraphics[width=\columnwidth]{am_distribuicao_gasto.png}
+  \caption{Histograma do gasto de campanha no Amazonas (eixo $x$ em escala logarítmica).}
+  \label{fig:am_hist_gasto}
 \end{figure}
 
-O Amazonas contou com 80 candidatos (64 com votos), com 8 eleitos. É o estado
-com a correlação mais forte entre gasto e votos de toda a análise. A
-Figura~\ref{fig:scatter_am} e a Tabela~\ref{tab:pearson_am} apresentam os
-resultados.
+No AM, a média do gasto é 42,7 vezes maior que a mediana. A distribuição
+continua fortemente assimétrica à direita, mas com um contraste visual mais
+claro entre a massa de campanhas de baixo gasto e o pequeno grupo de
+candidaturas com investimento muito elevado.
 
-\begin{figure}[t]
+Para completar o recorte amazonense, o histograma de votos mostra como essa
+mesma lógica aparece no desempenho eleitoral.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{am_distribuicao_votos.png}
+  \caption{Histograma do número de votos no Amazonas (eixo $x$ em escala logarítmica).}
+  \label{fig:am_hist_votos}
+\end{figure}
+
+Os votos no AM também exibem cauda longa, mas com separação mais nítida entre
+os poucos candidatos muito votados e o restante da amostra. Esse desenho
+antecipa a relação mais forte entre gasto e votos observada na subseção
+seguinte.
+
+\subsection{Dispersão e Correlação nos Estados Selecionados}
+
+Os gráficos de dispersão a seguir mantêm a mesma lógica de apresentação:
+cada figura ocupa apenas uma coluna e é imediatamente contextualizada no
+texto. Em todos os casos, os eixos foram mantidos em escala logarítmica para
+preservar a legibilidade diante da grande amplitude dos dados.
+
+\subsubsection{Rio de Janeiro (RJ)}
+
+Começa-se pelo Rio de Janeiro, onde a nuvem de pontos é mais espalhada e a
+associação linear entre gasto e votos aparece de forma menos compacta.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{gasto_vs_votos_RJ.png}
+  \caption{Dispersão entre gasto e votos no Rio de Janeiro, com eixos em escala logarítmica.}
+  \label{fig:rj_scatter}
+\end{figure}
+
+No RJ, a correlação é moderada positiva ($r = 0{,}556$). A nuvem cresce da
+esquerda para a direita, mas ainda com bastante dispersão entre campanhas
+intermediárias, o que sugere relação positiva sem alinhamento tão rígido.
+
+\subsubsection{Goiás (GO)}
+
+Em Goiás, a tendência visual de crescimento entre gasto e votos se torna mais
+evidente, embora ainda existam desvios relevantes em torno do padrão médio.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{gasto_vs_votos_GO.png}
+  \caption{Dispersão entre gasto e votos em Goiás, com eixos em escala logarítmica.}
+  \label{fig:go_scatter}
+\end{figure}
+
+O coeficiente de Pearson em GO é $r = 0{,}605$, também classificado como
+moderado positivo. A inclinação geral da nuvem é clara, indicando que
+campanhas mais caras tendem a receber mais votos, ainda que não de forma
+determinística.
+
+\subsubsection{Amazonas (AM)}
+
+O Amazonas encerra esta etapa com o gráfico visualmente mais organizado entre
+os três recortes estaduais.
+
+\begin{figure}[!t]
   \centering
   \includegraphics[width=\columnwidth]{gasto_vs_votos_AM.png}
-  \caption{Dispersão: Gasto $\times$ Votos --- AM. $r = 0{,}902$. 2014.}
-  \label{fig:scatter_am}
+  \caption{Dispersão entre gasto e votos no Amazonas, com eixos em escala logarítmica.}
+  \label{fig:am_scatter}
 \end{figure}
 
-\begin{figure}[t]
+No AM, a correlação é forte positiva ($r = 0{,}902$). A nuvem de pontos está
+mais alinhada do que em RJ e GO, o que sugere que o gasto de campanha, nesse
+estado, se aproxima mais de um preditor linear do total de votos.
+
+\begin{table}[!t]
   \centering
-  \tablePlaceholder{Gasto e Votos por resultado eleitoral, com correlação de Pearson --- AM.}
-  \caption{Gasto e votos por resultado eleitoral, e coeficiente de correlação
-           de Pearson entre Gasto e Votos. AM, 2014.}
-  \label{tab:pearson_am}
-\end{figure}
+  \caption{Coeficiente de Pearson entre gasto e votos nos estados selecionados.}
+  \label{tab:pearson_selecionados}
+  \footnotesize
+  \begin{tabular}{lrrl}
+    \toprule
+    \textbf{UF} & \textbf{n} & \textbf{$r$} & \textbf{Leitura} \\
+    \midrule
+    RJ & 701 & 0,556 & moderada positiva \\
+    GO & 77 & 0,605 & moderada positiva \\
+    AM & 64 & 0,902 & forte positiva \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
-O AM exibiu a correlação mais alta entre os 27 estados ($r = 0{,}902$,
-$p < 0{,}001$), sugerindo que o gasto de campanha é um preditor quase linear
-dos votos obtidos nesse estado. A diferença de medianas entre eleitos
-(R\$\,1.449.783) e não eleitos (R\$\,1.641) é de $\approx 883\times$.
+A Tabela~\ref{tab:pearson_selecionados} consolida a comparação dos três
+estados. O contraste principal está entre o RJ, com correlação positiva mas
+mais difusa, e o AM, onde a associação visual e numérica é muito mais forte.
 
-A Figura~\ref{fig:dist_gasto_estados} apresenta as distribuições de gasto e
-a Figura~\ref{fig:dist_votos_estados} as distribuições de votos para cada
-estado, permitindo comparação visual direta.
+\subsection{Correlação por Estado: Brasil Inteiro}
 
-\begin{figure*}[t]
-  \centering
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{rj_distribuicao_gasto.png}
-    \caption{RJ}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{go_distribuicao_gasto.png}
-    \caption{GO}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{am_distribuicao_gasto.png}
-    \caption{AM}
-  \end{subfigure}
-  \caption{Distribuição de frequência do gasto de campanha por estado
-           (escala logarítmica). 2014.}
-  \label{fig:dist_gasto_estados}
-\end{figure*}
+A Tabela~\ref{tab:pearson_estados_a} e a
+Tabela~\ref{tab:pearson_estados_b}, apresentadas no Apêndice A, mostram o
+coeficiente de Pearson entre \textit{Gasto} e \textit{Votos} para todas as
+UFs. O resultado mais importante é que a correlação foi \textbf{positiva em
+todos os estados} considerados.
 
-\begin{figure*}[t]
-  \centering
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{rj_distribuicao_votos.png}
-    \caption{RJ}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{go_distribuicao_votos.png}
-    \caption{GO}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{am_distribuicao_votos.png}
-    \caption{AM}
-  \end{subfigure}
-  \caption{Distribuição de frequência de votos obtidos por estado
-           (escala logarítmica). 2014.}
-  \label{fig:dist_votos_estados}
-\end{figure*}
+O Amazonas lidera o ranking com $r = 0{,}902$, seguido por Rio Grande do
+Norte e Santa Catarina. No extremo inferior, São Paulo apresenta o menor
+coeficiente ($r = 0{,}475$), ainda assim positivo. Esse contraste sugere que
+estados maiores e mais heterogêneos tendem a produzir relação menos linear
+entre gasto e votos, enquanto estados menores exibem ligação mais direta
+entre financiamento e desempenho eleitoral. Os três estados escolhidos para
+as figuras representam bem essa variação: RJ aparece próximo ao piso,
+GO em faixa intermediária e AM no topo da distribuição.
 
-\subsubsection{Síntese da Correlação por Estado}
+\subsection{Medidas Resumo por UF}
 
-A Tabela~\ref{tab:pearson_estados} resume os coeficientes de Pearson para todos
-os estados, evidenciando a universalidade da correlação positiva entre gasto
-e votos.
+A descrição completa por UF foi deslocada para os apêndices em tabelas de
+uma coluna. As Tabelas~\ref{tab:resumo_votos_a} e~\ref{tab:resumo_votos_b},
+no Apêndice B, reúnem o painel de votos, enquanto as
+Tabelas~\ref{tab:resumo_gasto_a} e~\ref{tab:resumo_gasto_b}, no Apêndice C,
+reúnem o painel de gasto.
 
-\begin{figure}[t]
-  \centering
-  \tablePlaceholder{Coeficiente de Pearson entre Gasto e Votos por estado (todos os 27 estados).}
-  \caption{Coeficiente de correlação de Pearson entre Gasto e Votos por estado.
-           Todos os estados brasileiros, 2014.}
-  \label{tab:pearson_estados}
-\end{figure}
+A tabela confirma um padrão recorrente ao longo do relatório: as medianas
+são sistematicamente inferiores às médias, tanto para votos quanto para
+gasto, reforçando a presença de distribuições assimétricas. Também se nota
+que os rankings mudam conforme a medida observada: estados como GO, PE e TO
+aparecem entre os maiores gastos médios, mas isso não significa que o
+candidato típico nesses locais gaste mais do que em todos os outros casos.
+Essa diferença entre média e mediana é precisamente o efeito esperado quando
+poucos valores extremos dominam a distribuição.
 
-A correlação foi positiva em todos os 27 estados ($p < 0{,}001$), variando de
-$r = 0{,}902$ no Amazonas a $r = 0{,}475$ em São Paulo. Estados menores tendem
-a apresentar correlações mais fortes, possivelmente porque o menor número de
-candidatos torna a relação entre gasto e votos mais linear e menos ruidosa.
-
-\subsection{Análise de Fornecedores e Setores Econômicos}
-
-As Figuras~\ref{fig:fornecedores_top10} e~\ref{fig:fornecedores_setores}
-apresentam os dez maiores fornecedores e os principais setores econômicos
-receptores de gastos de campanha em nível nacional.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{fornecedores_top10.png}
-  \caption{Top 10 fornecedores por valor total recebido. Brasil, 2014.}
-  \label{fig:fornecedores_top10}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{fornecedores_setores.png}
-  \caption{Distribuição do gasto por setor econômico dos fornecedores. Brasil, 2014.}
-  \label{fig:fornecedores_setores}
-\end{figure}
-
-A categoria \textbf{\#NULO} (despesas sem CNPJ de fornecedor classificado)
-representa 40{,}8\% dos gastos nacionais, 28{,}8\% no RJ e 61{,}3\% em GO,
-o que limita a análise setorial. Entre os setores identificados, destacam-se
-serviços gráficos e comunicação visual, comitês partidários e serviços de
-transporte. O maior fornecedor individual foi a COOPGUANABARA, com
-R\$\,3.697.968 em 61 registros --- cooperativa fundada no mesmo ano da
-eleição, o que levanta questões sobre sua origem e relação com os candidatos.
-
-No Amazonas, a presença de serviços de \textit{táxi aéreo} entre os principais
-setores é uma característica única, refletindo as restrições logísticas de um
-estado sem acesso terrestre a grande parte de seu território.
-
-As Figuras~\ref{fig:fornecedores_estados} apresentam os top 10 fornecedores
-por estado para comparação regional.
-
-\begin{figure*}[t]
-  \centering
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{rj_fornecedores_top10.png}
-    \caption{RJ}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{go_fornecedores_top10.png}
-    \caption{GO}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{am_fornecedores_top10.png}
-    \caption{AM}
-  \end{subfigure}
-  \caption{Top 10 fornecedores por valor total recebido, por estado. 2014.}
-  \label{fig:fornecedores_estados}
-\end{figure*}
-
-\subsection{Análise de Gênero}
-\label{subsec:genero}
-
-\subsubsection{Representatividade e Gasto}
-
-As Figuras~\ref{fig:genero_distribuicao}, \ref{fig:genero_representatividade}
-e~\ref{fig:genero_taxa} apresentam, respectivamente, a distribuição de
-candidatos por gênero, a razão de representatividade financeira e a taxa de
-eleição por gênero em nível nacional.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{genero_distribuicao.png}
-  \caption{Distribuição de candidatos por gênero: contagem e proporção.
-           Brasil, 2014.}
-  \label{fig:genero_distribuicao}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{genero_representatividade.png}
-  \caption{Razão de representatividade financeira por gênero (proporção do
-           gasto / proporção de candidatos). Brasil, 2014.}
-  \label{fig:genero_representatividade}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{genero_taxa_eleicao.png}
-  \caption{Taxa de eleição por gênero. Brasil, 2014.}
-  \label{fig:genero_taxa}
-\end{figure}
-
-Candidatas mulheres representaram 29{,}6\% do total, mas concentraram apenas
-9{,}6\% dos gastos totais de campanha --- uma razão de representatividade de
-$0{,}32\times$. Em contrapartida, candidatos homens (70{,}4\% dos candidatos)
-concentraram 90{,}4\% dos gastos (razão $1{,}28\times$). Essa assimetria
-financeira se reflete nos resultados eleitorais: mulheres corresponderam a
-apenas 8{,}0\% dos eleitos, abaixo de sua já reduzida proporção na corrida
-eleitoral.
-
-A Figura~\ref{fig:genero_boxplot} apresenta os boxplots de gasto por gênero,
-e as Figuras~\ref{fig:genero_estados} mostram as distribuições estaduais.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{genero_boxplot.png}
-  \caption{Boxplot do gasto de campanha por gênero (escala logarítmica).
-           Brasil, 2014.}
-  \label{fig:genero_boxplot}
-\end{figure}
-
-\begin{figure*}[t]
-  \centering
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{rj_genero_representatividade.png}
-    \caption{RJ}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{go_genero_representatividade.png}
-    \caption{GO}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{am_genero_representatividade.png}
-    \caption{AM}
-  \end{subfigure}
-  \caption{Razão de representatividade financeira por gênero, por estado. 2014.}
-  \label{fig:genero_estados}
-\end{figure*}
-
-A disparidade de gênero se aprofunda nos estados menores: em Goiás, a razão
-feminina cai para $0{,}40\times$; no Amazonas, para $0{,}20\times$, indicando
-que candidatas amazonenses acessam apenas um quinto dos recursos financeiros
-proporcionais ao seu número de candidaturas.
-
-\subsection{Análise de Raça}
-\label{subsec:raca}
-
-\subsubsection{Representatividade e Gasto}
-
-As Figuras~\ref{fig:raca_distribuicao}, \ref{fig:raca_representatividade}
-e~\ref{fig:raca_taxa} apresentam a distribuição por raça, a razão de
-representatividade e a taxa de eleição em nível nacional.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{raca_distribuicao.png}
-  \caption{Distribuição de candidatos por raça: contagem e proporção.
-           Brasil, 2014.}
-  \label{fig:raca_distribuicao}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{raca_representatividade.png}
-  \caption{Razão de representatividade financeira por raça (proporção do
-           gasto / proporção de candidatos). Brasil, 2014.}
-  \label{fig:raca_representatividade}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{raca_taxa_eleicao.png}
-  \caption{Taxa de eleição por raça. Brasil, 2014.}
-  \label{fig:raca_taxa}
-\end{figure}
-
-Candidatos brancos são o único grupo com razão de representatividade superior
-a 1 ($1{,}40\times$), acessando 40\% mais recursos do que sua proporção de
-candidatos justificaria. Todos os demais grupos recebem proporcionalmente menos:
-pardos ($0{,}46\times$), pretos ($0{,}38\times$), amarelos e indígenas
-($0{,}05\times$). Candidatos indígenas são virtualmente ausentes do
-financiamento eleitoral.
-
-A Figura~\ref{fig:raca_boxplot} apresenta os boxplots de gasto por raça, e as
-Figuras~\ref{fig:raca_estados} mostram as razões estaduais.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{raca_boxplot.png}
-  \caption{Boxplot do gasto de campanha por raça (escala logarítmica).
-           Brasil, 2014.}
-  \label{fig:raca_boxplot}
-\end{figure}
-
-\begin{figure*}[t]
-  \centering
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{rj_raca_representatividade.png}
-    \caption{RJ}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{go_raca_representatividade.png}
-    \caption{GO}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics[width=\textwidth]{am_raca_representatividade.png}
-    \caption{AM}
-  \end{subfigure}
-  \caption{Razão de representatividade financeira por raça, por estado. 2014.}
-  \label{fig:raca_estados}
-\end{figure*}
-
-Destaca-se a situação dos candidatos negros em Goiás: com 5{,}6\% dos
-candidatos, concentraram apenas 0{,}1\% dos gastos (razão $0{,}02\times$) e
-nenhum foi eleito. No Amazonas --- o estado com a maior proporção de população
-indígena do país --- apenas um candidato indígena foi registrado, sem votos
-expressivos, o que torna essa ausência ainda mais notável.
+\FloatBarrier
 
 % =========================================================================
 \section{Conclusão}
 
-Este trabalho realizou uma análise estatística descritiva abrangente do dataset
-de eleições brasileiras de 2014, investigando a relação entre gasto de campanha,
-votos obtidos e resultado eleitoral, com análises complementares de fornecedores,
-gênero e raça.
+Este relatório cumpriu os itens solicitados no briefing para o dataset D2,
+seguindo a mesma organização geral adotada no relatório do Titanic: breve
+fundamentação teórica, explicitação metodológica, apresentação dos gráficos
+e tabelas e comentários curtos após cada resultado.
 
-A distribuição de gastos é fortemente assimétrica à direita em todos os recortes
-analisados. Em nível nacional, a mediana (R\$\,5.804) é 22$\times$ inferior à
-média (R\$\,184.664), tornando a mediana o indicador mais adequado do candidato
-típico. Os desvios-padrão superam as médias em todos os estados, confirmando a
-inadequação da média como medida única de posição. A assimetria é ainda mais
-extrema em Goiás (razão de 125,7$\times$) e no Amazonas (42,7$\times$).
+Os dados mostram que tanto \textit{Gasto} quanto \textit{Votos} apresentam
+forte assimetria à direita. Em consequência, a mediana é uma medida mais
+representativa do candidato típico do que a média, principalmente em estados
+como Goiás e Amazonas. A escala logarítmica foi necessária para manter a
+legibilidade dos histogramas e gráficos de dispersão diante da grande
+amplitude dos valores observados.
 
-A correlação positiva entre gasto de campanha e votos obtidos foi verificada
-em todos os 27 estados brasileiros ($p < 0{,}001$), variando de $r = 0{,}902$
-no Amazonas a $r = 0{,}475$ em São Paulo. A relação não é determinística ---
-altos gastos não garantem eleição, mas a ausência de gasto parece efetivamente
-impedir o sucesso eleitoral: nenhum candidato eleito registrou gasto abaixo de
-R\$\,38.810. Estados menores tendem a apresentar correlações mais fortes,
-possivelmente porque a disputa por vagas é mais concentrada e a visibilidade
-financeira tem impacto mais direto no resultado.
+A relação entre gasto e votos foi positiva em todas as UFs do dataset.
+Entre os estados selecionados, o RJ apresentou correlação moderada positiva
+($r = 0{,}556$), GO também correlação moderada positiva ($r = 0{,}605$) e o
+AM correlação forte positiva ($r = 0{,}902$). Em termos substantivos, isso
+sugere que campanhas mais caras tendem a obter mais votos, embora a força
+dessa associação varie bastante de um contexto estadual para outro.
 
-A análise de equidade revela disparidades estruturais no acesso ao financiamento
-eleitoral. No recorte de gênero, candidatas mulheres concentraram 9{,}6\% dos
-gastos sendo 29{,}6\% dos candidatos (razão $0{,}32\times$) e elegeram apenas
-8{,}0\% dos eleitos. No recorte racial, candidatos brancos foram o único grupo
-com acesso proporcionalmente superior ao seu tamanho (razão $1{,}40\times$),
-enquanto candidatos indígenas acessaram apenas 5\% do esperado. Esses resultados
-sugerem que o financiamento de campanha atua como barreira estrutural à
-representação de grupos sub-representados no Legislativo Federal.
+O notebook contém análises adicionais por partido, fornecedores, gênero e
+raça, mas o presente relatório privilegiou os itens diretamente exigidos na
+atividade e a legibilidade do PDF final. Esse recorte mantém o documento
+focado, sem perder os principais padrões estatísticos observados no conjunto
+de dados.
 
-Os dados analisados referem-se exclusivamente às eleições de 2014 para Deputado
-Federal. Generalizações para outros cargos ou anos eleitorais requerem análises
-específicas, dado que as dinâmicas de financiamento e representatividade podem
-variar significativamente conforme o eleitorado e as regras eleitorais vigentes.
+\clearpage
+\section*{Apêndice A. Correlação por UF}
+
+Este primeiro apêndice reúne a correlação de Pearson entre gasto e votos
+para todas as unidades da federação. A divisão em duas tabelas preserva a
+leitura em uma coluna sem comprimir excessivamente a paginação.
+
+\begin{table}[H]
+  \centering
+  \caption{Correlação de Pearson entre gasto e votos por UF, parte 1.}
+  \label{tab:pearson_estados_a}
+  \footnotesize
+  \begin{tabular}{lrr}
+    \toprule
+    \textbf{UF} & \textbf{n} & \textbf{$r$} \\
+    \midrule
+    AM & 64 & 0,902 \\
+    RN & 68 & 0,877 \\
+    SC & 104 & 0,865 \\
+    MT & 72 & 0,858 \\
+    PB & 74 & 0,846 \\
+    RS & 262 & 0,831 \\
+    AL & 79 & 0,829 \\
+    ES & 130 & 0,817 \\
+    MG & 522 & 0,802 \\
+    MS & 108 & 0,775 \\
+    TO & 42 & 0,760 \\
+    CE & 162 & 0,726 \\
+    PR & 248 & 0,720 \\
+    PE & 119 & 0,705 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Correlação de Pearson entre gasto e votos por UF, parte 2.}
+  \label{tab:pearson_estados_b}
+  \footnotesize
+  \begin{tabular}{lrr}
+    \toprule
+    \textbf{UF} & \textbf{n} & \textbf{$r$} \\
+    \midrule
+    AC & 54 & 0,702 \\
+    PA & 147 & 0,698 \\
+    BA & 212 & 0,674 \\
+    SE & 64 & 0,670 \\
+    RO & 66 & 0,657 \\
+    MA & 140 & 0,654 \\
+    PI & 76 & 0,644 \\
+    RR & 73 & 0,608 \\
+    GO & 77 & 0,605 \\
+    AP & 87 & 0,560 \\
+    RJ & 701 & 0,556 \\
+    SP & 1.072 & 0,475 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\clearpage
+\section*{Apêndice B. Resumo de Votos por UF}
+
+As tabelas a seguir consolidam as medidas descritivas de votos para cada
+estado. Mantê-las em um bloco próprio ajuda a separar a leitura desse painel
+do restante do anexo.
+
+\begin{table}[H]
+  \centering
+  \caption{Tabela-resumo por UF para votos, parte 1.}
+  \label{tab:resumo_votos_a}
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{%
+    \begin{tabular}{lrrrrrrr}
+      \toprule
+      \textbf{UF} & \textbf{Média} & \textbf{Mediana} & \textbf{DP} & \textbf{Min} & \textbf{Q1} & \textbf{Q3} & \textbf{Máx} \\
+      \midrule
+      AC & 5.941 & 1.645 & 8.311 & 5 & 354 & 10.204 & 39.844 \\
+      AL & 12.961 & 1.685 & 28.818 & 13 & 266 & 6.101 & 135.929 \\
+      AM & 20.527 & 1.399 & 44.281 & 32 & 442 & 7.290 & 250.916 \\
+      AP & 3.608 & 1.083 & 5.187 & 7 & 250 & 5.609 & 22.134 \\
+      BA & 20.844 & 1.330 & 39.928 & 9 & 372 & 12.780 & 222.164 \\
+      CE & 20.955 & 1.365 & 46.682 & 15 & 391 & 6.752 & 277.774 \\
+      ES & 11.328 & 1.612 & 24.098 & 18 & 559 & 6.661 & 161.744 \\
+      GO & 30.369 & 1.198 & 50.073 & 35 & 383 & 58.466 & 274.625 \\
+      MA & 12.836 & 1.178 & 25.951 & 4 & 376 & 7.274 & 133.575 \\
+      MG & 15.586 & 1.142 & 38.861 & 13 & 421 & 5.080 & 310.226 \\
+      MS & 10.300 & 1.516 & 23.878 & 29 & 492 & 5.224 & 160.556 \\
+      MT & 15.522 & 2.581 & 29.416 & 40 & 414 & 14.096 & 127.749 \\
+      PA & 20.569 & 1.746 & 41.263 & 10 & 483 & 15.475 & 265.983 \\
+      \bottomrule
+    \end{tabular}%
+  }
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Tabela-resumo por UF para votos, parte 2.}
+  \label{tab:resumo_votos_b}
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{%
+    \begin{tabular}{lrrrrrrr}
+      \toprule
+      \textbf{UF} & \textbf{Média} & \textbf{Mediana} & \textbf{DP} & \textbf{Min} & \textbf{Q1} & \textbf{Q3} & \textbf{Máx} \\
+      \midrule
+      PB & 19.701 & 1.614 & 40.469 & 21 & 369 & 10.694 & 179.886 \\
+      PE & 27.165 & 2.938 & 50.206 & 5 & 341 & 23.780 & 283.567 \\
+      PI & 18.676 & 828 & 36.680 & 9 & 322 & 3.340 & 134.157 \\
+      PR & 18.383 & 1.461 & 39.199 & 8 & 473 & 11.063 & 200.144 \\
+      RJ & 8.176 & 1.022 & 28.113 & 5 & 382 & 3.613 & 464.572 \\
+      RN & 18.142 & 1.898 & 40.470 & 30 & 603 & 8.390 & 191.064 \\
+      RO & 9.147 & 3.216 & 13.884 & 18 & 884 & 9.315 & 61.419 \\
+      RR & 2.930 & 552 & 5.637 & 2 & 115 & 3.874 & 35.555 \\
+      RS & 18.037 & 1.455 & 37.144 & 27 & 487 & 10.924 & 162.462 \\
+      SC & 25.368 & 2.785 & 48.131 & 53 & 911 & 15.896 & 229.668 \\
+      SE & 13.532 & 980 & 26.748 & 13 & 280 & 5.611 & 131.236 \\
+      SP & 15.431 & 1.085 & 63.972 & 6 & 383 & 5.226 & 1.524.361 \\
+      TO & 14.585 & 794 & 21.161 & 67 & 335 & 28.631 & 75.934 \\
+      \bottomrule
+    \end{tabular}%
+  }
+\end{table}
+
+\clearpage
+\section*{Apêndice C. Resumo de Gasto por UF}
+
+Este último apêndice apresenta as medidas descritivas do gasto de campanha
+por UF. A separação em página própria evita que as tabelas mais densas
+pareçam anexadas de forma abrupta ao fim do relatório.
+
+\begin{table}[H]
+  \centering
+  \caption{Tabela-resumo por UF para gasto, parte 1.}
+  \label{tab:resumo_gasto_a}
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{%
+    \begin{tabular}{lrrrrrrr}
+      \toprule
+      \textbf{UF} & \textbf{Média} & \textbf{Mediana} & \textbf{DP} & \textbf{Min} & \textbf{Q1} & \textbf{Q3} & \textbf{Máx} \\
+      \midrule
+      AC & 157.044 & 47.348 & 211.815 & 530 & 5.808 & 237.535 & 736.866 \\
+      AL & 202.439 & 10.200 & 461.840 & 110 & 2.400 & 117.281 & 2.281.353 \\
+      AM & 349.474 & 8.193 & 882.444 & 100 & 1.806 & 134.440 & 5.633.092 \\
+      AP & 90.261 & 8.894 & 261.558 & 300 & 1.745 & 58.789 & 2.060.000 \\
+      BA & 303.228 & 12.934 & 748.919 & 1 & 2.045 & 181.737 & 5.979.037 \\
+      CE & 203.736 & 7.010 & 453.522 & 50 & 1.474 & 59.590 & 2.476.972 \\
+      ES & 135.353 & 14.343 & 327.745 & 100 & 4.228 & 62.537 & 2.233.582 \\
+      GO & 508.946 & 4.048 & 1.145.747 & 80 & 1.000 & 84.497 & 5.812.788 \\
+      MA & 141.318 & 10.982 & 316.186 & 18 & 1.500 & 127.220 & 2.407.218 \\
+      MG & 289.187 & 7.794 & 785.370 & 102 & 4.205 & 57.413 & 4.953.956 \\
+      MS & 260.040 & 42.084 & 623.506 & 656 & 21.150 & 135.628 & 4.298.808 \\
+      MT & 298.680 & 24.468 & 735.090 & 800 & 3.307 & 85.814 & 3.860.362 \\
+      PA & 121.643 & 11.977 & 237.400 & 100 & 1.961 & 112.144 & 1.342.770 \\
+      \bottomrule
+    \end{tabular}%
+  }
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Tabela-resumo por UF para gasto, parte 2.}
+  \label{tab:resumo_gasto_b}
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{%
+    \begin{tabular}{lrrrrrrr}
+      \toprule
+      \textbf{UF} & \textbf{Média} & \textbf{Mediana} & \textbf{DP} & \textbf{Min} & \textbf{Q1} & \textbf{Q3} & \textbf{Máx} \\
+      \midrule
+      PB & 169.788 & 9.718 & 396.454 & 270 & 1.416 & 75.205 & 2.224.507 \\
+      PE & 415.384 & 14.922 & 758.170 & 145 & 5.247 & 480.333 & 3.823.108 \\
+      PI & 279.760 & 5.800 & 889.359 & 80 & 2.799 & 33.915 & 6.722.541 \\
+      PR & 261.624 & 11.808 & 670.429 & 100 & 2.593 & 125.899 & 4.779.913 \\
+      RJ & 136.771 & 6.024 & 565.480 & 18 & 1.650 & 26.452 & 6.788.349 \\
+      RN & 186.564 & 4.755 & 452.360 & 190 & 2.238 & 62.943 & 2.537.948 \\
+      RO & 245.899 & 51.306 & 439.389 & 18 & 10.168 & 354.244 & 2.586.063 \\
+      RR & 108.553 & 15.380 & 306.957 & 150 & 5.769 & 59.718 & 2.408.351 \\
+      RS & 209.723 & 12.930 & 500.424 & 5 & 3.150 & 83.590 & 2.906.257 \\
+      SC & 285.734 & 24.489 & 504.709 & 100 & 2.977 & 348.016 & 1.985.545 \\
+      SE & 111.915 & 11.267 & 266.889 & 200 & 2.150 & 42.276 & 1.439.636 \\
+      SP & 206.064 & 8.952 & 667.436 & 13 & 2.381 & 60.092 & 8.464.594 \\
+      TO & 354.993 & 23.818 & 581.692 & 250 & 5.643 & 533.039 & 2.489.033 \\
+      \bottomrule
+    \end{tabular}%
+  }
+\end{table}
 
 \end{document}
