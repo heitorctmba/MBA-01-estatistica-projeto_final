@@ -1,0 +1,479 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{amsmath, amssymb}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{fancybox}
+
+\graphicspath{{assets/titanic/plots/}}
+
+% Placeholder para tabelas (substituir por screenshot)
+\newcommand{\tablePlaceholder}[1]{%
+  \begin{center}
+    \fbox{\parbox{0.85\columnwidth}{%
+      \centering\vspace{0.4cm}
+      \textbf{[PLACEHOLDER]} \\[0.2cm]
+      \textit{#1} \\[0.4cm]
+    }}
+  \end{center}
+}
+
+% -------------------------------------------------------------------------
+\title{Análise Estatística Descritiva do Dataset Titanic:\\
+Perfil Socioeconômico e Padrões de Sobrevivência}
+
+\author{
+  \IEEEauthorblockN{Heitor Teixeira}
+  \IEEEauthorblockA{
+    \textit{MBA: Ciência de dados}\\
+    UNIFOR\\
+    Fortaleza, Brasil\\
+    heitor.mba.unifor@gmail.com
+  }
+}
+
+\begin{document}
+
+\maketitle
+
+% -------------------------------------------------------------------------
+\begin{abstract}
+Este trabalho apresenta uma análise estatística descritiva do dataset
+Titanic, com foco na caracterização socioeconômica dos passageiros e nos
+padrões de sobrevivência observados no naufrágio de 1912. O dataset
+utilizado compreende 872 registros de passageiros após filtragem de tarifas
+nulas. As tarifas originais em libras esterlinas de 1912 foram corrigidas
+monetariamente para valores de 2024 por meio de um índice composto, que
+combina dados do Banco da Inglaterra (1912--2016) e do Banco Mundial
+(2016--2024), resultando em fator acumulado de 107,14. A análise inclui
+classificação das variáveis, estatísticas descritivas completas, percentis,
+distribuições de frequência, análise de densidade por classe, perfis de
+sobrevivência por gênero, classe e faixa etária, além de análise de
+correlação de Pearson entre idade e tarifa. Os resultados evidenciam que a
+sobrevivência foi fortemente determinada por fatores sociais e demográficos:
+passageiros de primeira classe apresentaram taxa de sobrevivência de 63\%,
+contra 24\% na terceira classe; mulheres sobreviveram a uma taxa de 73\%,
+enquanto homens apresentaram apenas 19\%. A correlação entre idade e tarifa
+mostrou-se estatisticamente significativa porém praticamente negligenciável
+($r = 0{,}115$; $p = 0{,}0007$), indicando independência entre essas
+variáveis.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Estatística descritiva, Titanic, análise exploratória de dados,
+correlação de Pearson, visualização de dados.
+\end{IEEEkeywords}
+
+% =========================================================================
+\section{Introdução}
+
+Este trabalho realiza uma análise de estatística descritiva sobre o dataset
+Titanic (D1), em atendimento à atividade avaliativa da disciplina de
+Estatística Descritiva. O dataset contém registros de passageiros com
+variáveis demográficas, socioeconômicas e de sobrevivência, constituindo
+um conjunto adequado para a aplicação das técnicas exigidas.
+
+A análise foi implementada em Python com as bibliotecas \textit{pandas},
+\textit{matplotlib}, \textit{numpy}, \textit{scipy} e \textit{requests},
+e cobre os seguintes requisitos: (i) classificação das variáveis qualitativas
+e quantitativas; (ii) gráficos de barras e pizza para Sex, Pclass e
+Survived; (iii) medidas de tendência central e dispersão para Age e Fare;
+(iv) quartis e percentis P10 e P90 de Age; (v) histograma de Age; e
+(vi) gráfico de dispersão e coeficiente de Pearson entre Age e Fare.
+
+Como a atividade não especificou um formato de entrega, optou-se pelo
+formato de artigo científico segundo o padrão IEEE, por ser uma estrutura
+consolidada na comunicação técnica e científica, que favorece a organização
+clara dos resultados e sua reprodutibilidade.
+
+% =========================================================================
+\section{Fundamentação Teórica}
+
+\subsection{Estatística Descritiva}
+
+A estatística descritiva constitui o conjunto de técnicas que visa sumarizar
+e apresentar de forma sistemática as características de um conjunto de dados.
+Seu objetivo mas sim organizar e descrever os dados de forma clara e objetiva.
+
+\subsection{Medidas de Posição e Dispersão}
+
+As medidas de posição central mais utilizadas são a média aritmética,
+a mediana e a moda. A média aritmética é sensível a valores extremos
+(\textit{outliers}), enquanto a mediana oferece maior robustez em
+distribuições assimétricas. As medidas de dispersão, como o desvio-padrão e
+o intervalo interquartil (IQR), quantificam a variabilidade dos dados ao
+redor de uma medida central.
+
+Os percentis dividem o conjunto de dados ordenado em cem partes iguais.
+Os quartis $Q_1$ (P25), $Q_2$ (P50) e $Q_3$ (P75) são os percentis de maior
+uso prático. Neste trabalho, calculam-se também os percentis P10 e P90,
+que delimitam as caudas da distribuição e complementam a caracterização
+da variabilidade da variável Age.
+
+\subsection{Distribuições de Frequência e Histogramas}
+
+Um histograma representa a distribuição de frequências de uma variável
+contínua por meio de retângulos adjacentes, onde a base corresponde a um
+intervalo de classe e a altura à frequência (ou densidade) observada. O
+número de classes pode ser determinado pela regra da raiz quadrada
+($k \approx \sqrt{n}$), adotada neste trabalho, conforme falado em sala de aula.
+
+A estimativa de densidade (\textit{Kernel Density Estimation},
+KDE) é uma abordagem não paramétrica para estimar a função de densidade de
+probabilidade de uma variável aleatória. Neste trabalho,
+a KDE gaussiana foi utilizada para sobrepor curvas de densidade contínua
+sobre os histogramas e para comparar distribuições de tarifas entre classes.
+
+\subsection{Correlação de Pearson}
+
+O coeficiente de correlação de Pearson $r$ mede a intensidade e a direção
+da relação linear entre duas variáveis contínuas, assumindo valores em
+$[-1, 1]$:
+\begin{equation}
+  r = \frac{\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}
+           {\sqrt{\sum_{i=1}^{n}(x_i - \bar{x})^2 \cdot
+                  \sum_{i=1}^{n}(y_i - \bar{y})^2}}
+\end{equation}
+Valores de $|r|$ próximos de 1 indicam forte relação linear; valores próximos
+de 0 indicam ausência de relação linear. O teste de significância associado
+avalia a hipótese nula $H_0: r = 0$.
+
+\subsection{Correção Monetária}
+
+A comparação de valores monetários ao longo do tempo requer a aplicação de
+índices de inflação. Neste trabalho, as tarifas originais em libras de 1912
+foram corrigidas para 2024 utilizando dados históricos do Banco da Inglaterra
+e do Banco Mundial, possibilitando uma interpretação contemporânea do poder
+aquisitivo dos passageiros.
+
+% =========================================================================
+\section{Metodologia}
+
+\subsection{Dataset e Filtragem}
+
+O dataset utilizado é o clássico conjunto de dados do Titanic, contendo
+informações dos passageiros a bordo no momento do naufrágio. Após a remoção
+de registros com tarifa igual a zero — correspondentes a tripulantes e
+passageiros sem custo de passagem registrado — a amostra final utilizada nas
+análises compreende \textbf{872 passageiros}. As variáveis foram renomeadas
+para o português e mapeadas conforme descrito na Tabela~\ref{tab:variaveis}.
+
+\tablePlaceholder{Tabela 3.2 — Identificação e classificação das variáveis:\\
+insira aqui o screenshot da tabela de variáveis do notebook (Seção 3.2)}
+\label{tab:variaveis}
+
+\subsection{Correção Monetária das Tarifas}
+
+As tarifas originais estão expressas em libras esterlinas de 1912. Para
+permitir uma interpretação contemporânea, foi construído um índice de
+correção composto a partir de duas fontes:
+
+\begin{itemize}
+  \item \textbf{Banco da Inglaterra (BoE)}: fator acumulado de 1912 a 2016
+        igual a $81{,}46\times$.
+  \item \textbf{Banco Mundial (WB)}: fator acumulado de 2016 a 2024 igual a
+        $1{,}3153\times$.
+\end{itemize}
+
+O fator total resultante é $107{,}14 = 81{,}46 \times 1{,}3153$, aplicado
+multiplicativamente a cada tarifa original para obter a coluna
+\textit{Tarifa 2024}. A composição detalhada do índice é apresentada na
+Tabela~\ref{tab:inflacao}.
+
+\tablePlaceholder{Tabela 2.2.1 — Composição do índice de correção monetária
+(1912→2024):\\
+insira aqui o screenshot da tabela de inflação do notebook (Seção 2.2.1)}
+\label{tab:inflacao}
+
+\subsection{Faixas Etárias}
+
+A variável idade contínua foi discretizada em quatro faixas etárias
+padronizadas segundo critérios demográficos usuais, conforme a
+Tabela~\ref{tab:faixas}:
+
+\tablePlaceholder{Tabela 2.4 — Distribuição por faixa etária
+(Criança / Jovem / Adulto / Idoso):\\
+insira aqui o screenshot da tabela de faixas etárias do notebook (Seção 2.4)}
+\label{tab:faixas}
+
+As quatro faixas definidas foram: \textbf{Criança} (0--12 anos, $n=79$),
+\textbf{Jovem} (12--17 anos, $n=51$), \textbf{Adulto} (17--59 anos,
+$n=711$) e \textbf{Idoso} (59--100 anos, $n=31$).
+
+% =========================================================================
+\section{Resultados}
+
+\subsection{Estatísticas Descritivas}
+
+A Tabela~\ref{tab:descritivas} apresenta as principais estatísticas
+descritivas das variáveis quantitativas do dataset.
+
+\tablePlaceholder{Tabela 3.1 — Estatísticas descritivas completas
+(contagem, média, desvio-padrão, mín., Q1, mediana, Q3, máx.):\\
+insira aqui o screenshot da tabela de estatísticas descritivas do notebook
+(Seção 3.1)}
+\label{tab:descritivas}
+
+Os principais resultados são:
+
+\begin{itemize}
+  \item \textbf{Idade}: média de 29,43 anos ($\sigma = 14{,}19$), mediana
+        de 28 anos; amplitude total de 0,42 a 80 anos.
+  \item \textbf{Tarifa 2024}: média de £3.520,61 ($\sigma = £5.359,63$),
+        mediana de £1.553,47; máximo de £54.888,84. A razão entre média e
+        mediana ($\approx 2{,}27$) evidencia forte assimetria positiva.
+\end{itemize}
+
+\subsection{Distribuição de Frequências — Tarifa}
+
+A Figura~\ref{fig:hist_fare} exibe o histograma das tarifas corrigidas para
+2024, com eixo $x$ em escala logarítmica para acomodar a amplitude da
+distribuição. O número de classes foi definido pela regra da raiz quadrada
+($k \approx \sqrt{872} \approx 29$).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{hist_fare.png}
+  \caption{Distribuição de frequência da tarifa por passageiro (valores
+           corrigidos para 2024, escala logarítmica). Titanic.}
+  \label{fig:hist_fare}
+\end{figure}
+
+A distribuição é fortemente assimétrica à direita: a grande maioria dos
+passageiros concentra-se em tarifas inferiores a £2.000, enquanto um pequeno
+grupo pagou valores superiores a £20.000 — reflexo da oferta de acomodações
+de luxo de primeira classe.
+
+\subsection{Distribuição de Frequências — Idade}
+
+A Figura~\ref{fig:hist_age} apresenta o histograma da idade com curva de
+densidade por kernel sobreposta.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{hist_age.png}
+  \caption{Distribuição de frequência da idade por passageiro com
+           estimativa de densidade por kernel (KDE gaussiana). Titanic.}
+  \label{fig:hist_age}
+\end{figure}
+
+Ao contrário da tarifa, a distribuição de idades apresenta comportamento
+aproximadamente simétrico (média $\approx$ mediana $\approx$ 28--29 anos),
+com concentração entre 20 e 40 anos e cauda à direita menos pronunciada.
+A coorte infantil (abaixo de 12 anos) é visível mas representa parcela
+reduzida da amostra.
+
+\subsection{Distribuição das Variáveis Qualitativas}
+
+As Figuras~\ref{fig:gender}, \ref{fig:class} e~\ref{fig:survival} exibem,
+respectivamente, a distribuição de gênero, classe e sobrevivência, cada uma
+representada por um gráfico de barras e um gráfico de pizza.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{gender.png}
+  \caption{Distribuição de gênero: contagem e proporção. Titanic.}
+  \label{fig:gender}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{class.png}
+  \caption{Distribuição por classe: contagem e proporção. Titanic.}
+  \label{fig:class}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{survival.png}
+  \caption{Distribuição de sobrevivência: contagem e proporção. Titanic.}
+  \label{fig:survival}
+\end{figure}
+
+O conjunto de passageiros é composto predominantemente por homens ($\approx
+65\%$, $n=568$) e passageiros de terceira classe ($\approx 55\%$, $n=480$).
+A taxa geral de sobrevivência é de 38\% ($n=335$), o que indica que a
+maioria dos passageiros ($\approx 62\%$, $n=537$) não sobreviveu ao
+naufrágio.
+
+\subsection{Densidade da Tarifa por Classe}
+
+A Figura~\ref{fig:density} apresenta as curvas KDE das tarifas
+(escala logarítmica) estratificadas por classe, evidenciando o grau de
+diferenciação socioeconômica entre os grupos.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{density.png}
+  \caption{Densidade da tarifa por classe (KDE, escala logarítmica). Titanic.}
+  \label{fig:density}
+\end{figure}
+
+A terceira classe apresenta distribuição unimodal concentrada ao redor de
+£900; a segunda classe exibe comportamento bimodal com picos em £1.500 e
+£3.000 — sugerindo subdivisões internas de acomodação; a primeira classe
+possui cauda direita longa, atingindo valores próximos a £55.000, e
+variabilidade interna significativamente maior.
+
+\subsection{Perfil de Sobrevivência}
+
+\subsubsection{Sobrevivência por Classe}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{survival_class.png}
+  \caption{Sobrevivência por classe (barras empilhadas proporcionais). Titanic.}
+  \label{fig:survival_class}
+\end{figure}
+
+Como ilustrado na Figura~\ref{fig:survival_class}, a sobrevivência foi
+fortemente estratificada pela classe socioeconômica:
+
+\begin{itemize}
+  \item \textbf{1ª Classe}: 63\% de sobrevivência.
+  \item \textbf{2ª Classe}: 47\% de sobrevivência.
+  \item \textbf{3ª Classe}: 24\% de sobrevivência.
+\end{itemize}
+
+A diferença de 39 pontos percentuais entre a primeira e a terceira classe
+reflete tanto o acesso preferencial aos botes salva-vidas quanto a
+localização física dos camarotes — mais próximos ao convés no caso da
+primeira classe.
+
+\subsubsection{Sobrevivência por Gênero}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{survival_gender.png}
+  \caption{Sobrevivência por gênero (barras empilhadas proporcionais). Titanic.}
+  \label{fig:survival_gender}
+\end{figure}
+
+A Figura~\ref{fig:survival_gender} evidencia o maior efeito observado na
+análise: mulheres apresentaram taxa de sobrevivência de 73\%, enquanto
+homens apresentaram apenas 19\% — diferença de 54 pontos percentuais. Esse
+padrão reflete diretamente o protocolo de evacuação \textit{``mulheres e
+crianças primeiro''} adotado pela tripulação do Titanic.
+
+\subsubsection{Sobrevivência por Faixa Etária}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{survival_group_age.png}
+  \caption{Sobrevivência por faixa etária (barras empilhadas proporcionais). Titanic.}
+  \label{fig:survival_group_age}
+\end{figure}
+
+A Figura~\ref{fig:survival_group_age} demonstra que crianças obtiveram as
+maiores taxas de sobrevivência, consistentemente com o protocolo de
+evacuação. Adultos, apesar de constituírem a maioria da amostra, apresentaram
+as menores taxas relativas.
+
+\subsection{Boxplot e Percentis}
+
+A Figura~\ref{fig:boxplot} exibe os boxplots de idade e tarifa 2024, com
+eixo $y$ em escala logarítmica para a tarifa a fim de acomodar os valores
+extremos.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{boxplot.png}
+  \caption{Boxplot — Idade (esquerda) e Tarifa 2024 em escala logarítmica
+           (direita). Titanic.}
+  \label{fig:boxplot}
+\end{figure}
+
+Os percentis calculados para cada variável são apresentados nas
+Tabelas~\ref{tab:percentis_age} e~\ref{tab:percentis_fare}.
+
+\tablePlaceholder{Tabela 3.8.2 — Percentis da variável Idade
+(P10, Q1, Q2/Mediana, Q3, P90):\\
+insira aqui o screenshot da tabela de percentis de idade do notebook
+(Seção 3.8.2)}
+\label{tab:percentis_age}
+
+\tablePlaceholder{Tabela 3.8.3 — Percentis da variável Tarifa 2024
+(P10, Q1, Q2/Mediana, Q3, P90):\\
+insira aqui o screenshot da tabela de percentis de tarifa do notebook
+(Seção 3.8.3)}
+\label{tab:percentis_fare}
+
+Para a idade, os quartis Q1, Q2 e Q3 correspondem a 20, 28 e 38 anos,
+respectivamente. Para a tarifa 2024, o Q1 está em £849,05, a mediana em
+£1.553,47 e o Q3 em £3.350,67, com P90 atingindo £8.352,13 — evidenciando
+a forte concentração de tarifas nas faixas mais baixas.
+
+\subsection{Correlação entre Idade e Tarifa}
+
+A Figura~\ref{fig:scatter} apresenta o diagrama de dispersão entre idade e
+tarifa 2024, com os pontos coloridos por sobrevivência, e a
+Figura~\ref{fig:correlacao} exibe a matriz de correlação de Pearson.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{scatter_pearson.png}
+  \caption{Dispersão: Idade $\times$ Tarifa 2024. Coeficiente de Pearson
+           $r = 0{,}115$. Titanic.}
+  \label{fig:scatter}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\columnwidth]{matriz_correlacao.png}
+  \caption{Matriz de correlação de Pearson (Idade $\times$ Tarifa 2024).
+           Titanic.}
+  \label{fig:correlacao}
+\end{figure}
+
+O coeficiente de Pearson obtido foi $r = 0{,}115$ ($p = 0{,}0007$). Embora
+estatisticamente significativo ao nível de 0,1\%, o valor indica uma
+correlação positiva \emph{muito fraca} sob qualquer escala de referência
+convencional. Os resultados da correlação são detalhados na
+Tabela~\ref{tab:pearson}.
+
+\tablePlaceholder{Tabela 3.9 — Coeficiente de correlação de Pearson entre
+Idade e Tarifa 2024 ($r$ e \textit{p-value}):\\
+insira aqui o screenshot da tabela de correlação do notebook (Seção 3.9)}
+\label{tab:pearson}
+
+Esse resultado implica que a idade dos passageiros não determinou o preço
+da passagem: as tarifas foram definidas pela classe de acomodação escolhida,
+e não por características demográficas individuais. Do ponto de vista de
+modelagem preditiva, essa independência é favorável, pois indica ausência
+de multicolinearidade entre essas duas variáveis.
+
+% =========================================================================
+\section{Conclusão}
+
+Este trabalho conduziu uma análise estatística descritiva completa do dataset
+Titanic, investigando o perfil dos passageiros e os determinantes da
+sobrevivência no naufrágio de 1912.
+
+A análise revelou que a composição da amostra é majoritariamente masculina
+($\approx 65\%$) e de terceira classe ($\approx 55\%$), refletindo o perfil
+imigrante típico das travessias transatlânticas da época. A distribuição de
+tarifas é fortemente assimétrica à direita, com mediana de £1.553 e média
+de £3.521 (valores 2024), enquanto a distribuição de idades é aproximadamente
+simétrica, centrada nos 28--29 anos.
+
+Os resultados mais expressivos foram encontrados na análise de sobrevivência:
+a taxa de sobrevivência variou de 24\% (terceira classe) a 63\% (primeira
+classe), e de 19\% (homens) a 73\% (mulheres). Esses dados confirmam que a
+sobrevivência no Titanic não foi aleatória, mas sistematicamente determinada
+por fatores socioeconômicos e demográficos — classe, gênero e faixa etária.
+
+Por fim, a correlação de Pearson entre idade e tarifa ($r = 0{,}115$)
+demonstrou que, embora estatisticamente significativa, a relação linear entre
+essas variáveis é praticamente inexistente, indicando que o preço da
+passagem foi determinado pela classe de acomodação e não pela idade do
+passageiro.
+
+
+\end{document}
